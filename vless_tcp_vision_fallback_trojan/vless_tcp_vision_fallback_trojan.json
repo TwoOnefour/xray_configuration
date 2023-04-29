@@ -95,7 +95,7 @@
         "protocol": "freedom",
         "tag": "blocked",
         "settings": {
-          "redirect": "127.0.0.1:3366",
+          "redirect": "127.0.0.1:3366", // 这里可以重定向到你自己的页面，显示访问内容
           "domainStrategy": "UseIP"
         }
       }
