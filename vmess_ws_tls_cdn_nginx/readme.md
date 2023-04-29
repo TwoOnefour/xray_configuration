@@ -3,7 +3,7 @@
 
 可以选择性套用cdn，如果被墙可以优先用这个方案，让他复活
 
-# Deploy
+# Deployment
 主要是cdn的配置，如果你有钱就使用国内的cdn，没钱可以使用cloudflare和cloudfront，我用的是免费的cloudfront方案
 
 首先把你的cdn缓存策略全部关闭
