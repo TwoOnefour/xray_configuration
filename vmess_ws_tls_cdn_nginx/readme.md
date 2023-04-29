@@ -20,3 +20,5 @@
 https://your.domain/clash.yaml
 
 就是一个订阅链接
+
+[关于cdn解析的问题和bing重定向的问题](https://github.com/twoonefour/xray_configuration/vmess_ws_tls_cdn_nginx/bing_problem.md)
