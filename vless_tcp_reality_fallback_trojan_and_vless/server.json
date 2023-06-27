@@ -1,0 +1,190 @@
+{
+  "log": {
+      "loglevel": "debug"
+  },
+  "inbounds": [
+      {
+          "listen": "0.0.0.0",
+          "port": 443,
+          "protocol": "vless",
+          "settings": {
+              "clients": [
+                  {
+                      "id": "jiaranjintianchishenme", // 执行 xray uuid 生成，或 1-30 字节的字符串
+                      "flow": "xtls-rprx-vision"
+                  }
+              ],
+              "decryption": "none"
+          },
+          "streamSettings": {
+              "network": "tcp",
+              "security": "reality",
+              "realitySettings": {
+                  "show": false, // 若为 true，输出调试信息
+                  "dest": "8004", // 目标网站最低标准：国外网站，支持 TLSv1.3、X25519 与 H2，域名非跳转用（主域名可能被用于跳转到 www）
+                  "xver": 1,
+                  "serverNames": [ // 客户端可用的 serverName 列表，暂不支持 * 通配符
+                      "www.lovelive-anime.jp" // Chrome - 输入 "dest" 的网址 - F12 - 安全 - F5 - 主要来源（安全），填 证书 SAN 的值
+                  ],
+                  "privateKey": "EDL2onYWrHT9PT3LMkfFukuM_k9ijsKfjeSMtK3S6m0", // 执行 xray x25519 生成，填 "Private key" 的值 M1L8-CDYAF5sJ9DOU70CCNIMOZQV_d-KxJDbiICDKio
+                  "shortIds": [ // 客户端可用的 shortId 列表，可用于区分不同的客户端
+                      "c1da0fad27b78638" // 0 到 f，长度为 2 的倍数，长度上限为 16，可留空，或执行 openssl rand -hex 8 生成
+                  ]
+              }
+          },
+          "sniffing": {
+              "enabled": true,
+              "destOverride": [
+                  "http",
+                  "tls",
+                  "quic"
+              ]
+          }
+      },
+      {
+        "port": 8004,
+        "protocol": "vless",
+        "settings": {
+            "clients": [
+                {
+                    "id": "2890cb69-fe93-4ee9-8199-86c83a81cc16", // fill in your UUID
+                    "flow": "xtls-rprx-vision",
+                    "level": 0,
+                    "email": "love@example.com"
+                }
+            ],
+            "decryption": "none",
+            "fallbacks": [
+                {
+                  // if it was not a valid trojan reuqest, for example the trojan password was wrong, pass it to the NGINX HTTP2 cleartext UDS
+                  "dest": "8005",
+                  "xver": 2 //Enable PROXY protocol sending, and send the real source IP and port to Nginx. 1 or 2 indicates the PROXY protocol version. Consistent with the above, configuration 2 is recommended.
+                }
+            ]
+        },
+        "streamSettings": {
+            "network": "tcp",
+            "security": "tls",
+            "tlsSettings": {
+                "alpn": [
+                    "h2",
+                    "http/1.1"
+                ],
+                "certificates": [
+                    {
+                        "certificateFile": "/etc/nginx/fullchain.cer", // Replace with your certificate, absolute path
+                        "keyFile": "/etc/nginx/cerkey.key" // Replace it with your private key, absolute path
+                    }
+                ]
+            },
+            "sockopt": {
+                "acceptProxyProtocol": true
+            }
+        },
+        "tag": "vless"
+      },
+      {
+          "listen": "127.0.0.1",
+          "port": 8005,
+          "protocol": "trojan",
+          "settings": {
+              "clients": [
+                  {
+                      "password": "abcde"
+                  }
+              ],
+              "decryption": "none",
+          "fallbacks": [
+            {
+              // if it was not a valid trojan reuqest, for example the trojan password was wrong, pass it to the NGINX HTTP2 cleartext UDS
+              "dest": "7001",
+              "xver": 2 //Enable PROXY protocol sending, and send the real source IP and port to Nginx. 1 or 2 indicates the PROXY protocol version. Consistent with the above, configuration 2 is recommended.
+            }
+          ]
+          },
+          "streamSettings": {
+              "network": "tcp",
+              "security": "none",
+              "sockopt": {
+                  "acceptProxyProtocol": true
+              }
+          },
+          "tag": "trojan"
+      }
+  ],
+    "outbounds": [
+      {
+          "protocol": "freedom",
+          "tag": "direct",
+          "settings": {
+            "domainStrategy": "UseIP"
+          }
+
+      },
+      {
+        "protocol": "freedom",
+        "tag": "blocked",
+        "settings": {
+          "redirect": "127.0.0.1:3366",
+          "domainStrategy": "UseIP"
+        }
+      }
+    ],
+    "routing": {
+        "domainStrategy": "IPOnDemand",
+        "rules": [{
+            "type": "field",
+            "domain": [
+                "geosite:!cn"
+            ],
+            "network": "tcp",
+            "inboundTag": [
+                "trojan",
+                "vless"
+            ],
+            "outboundTag": "direct"
+            // "balancerTag": "balancer"
+        },
+        {
+            "type": "field",
+            "domain": [
+                "geosite:category-ads-all",
+                "geosite:cn"
+            ],
+            "network": "tcp",
+            "inboundTag": [
+            "trojan",
+            "vless"
+            ],
+            "outboundTag": "blocked"
+            // "balancerTag": "balancer"
+        }]
+    },
+    "dns": {
+        "hosts": {
+        "bing.com": "204.79.197.200",
+        "dns.google": "8.8.8.8"
+        },
+        "servers": [
+        {
+            "address": "https://dns.google/dns-query",
+            "domains": [
+                "domain:bing.com",
+                "geosite:geolocation-!cn"
+            ],
+            "exceptIPs": [
+                "geoip:cn"
+            ]
+        },
+        {
+            "address": "114.114.114.114",
+            "domains": [
+                "geosite:cn"
+            ]
+        },
+        "8.8.8.8",
+        "8.8.4.4",
+        "localhost"
+        ]
+    }
+}
