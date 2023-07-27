@@ -1,0 +1,185 @@
+{
+    "log": {
+        "loglevel": "debug"
+    },
+    "inbounds": [
+        {
+          "port": 80,
+          "protocol": "vless",
+          "settings": {
+              "clients": [
+                  {
+                      "id": "05d6c4e2-b935-49ce-8336-1d31bf7f7889", // fill in your UUID
+                      "flow": "xtls-rprx-vision",
+                      "level": 0,
+                      "email": "love@example.com"
+                  }
+              ],
+              "decryption": "none",
+              "fallbacks": [
+                  {
+                      "alpn": "h2",
+                      "dest": "2235", // Fall back to Xray's Trojan protocol by default
+                      "xver": 2
+                  }
+              ]
+          },
+          "streamSettings": {
+              "network": "tcp",
+              "security": "tls",
+              "tlsSettings": {
+                  "alpn": [
+                      "h2",
+                      "http/1.1"
+                  ],
+                  "certificates": [
+                      {
+                          "certificateFile": "/etc/nginx/fullchain.cer", // Replace with your certificate, absolute path
+                          "keyFile": "/etc/nginx/cerkey.key" // Replace it with your private key, absolute path
+                      }
+                  ]
+              }
+          },
+          "tag": "vless"
+        },
+        {
+          "port": 443,
+          // "listen": "127.0.0.1",
+          "protocol": "vless",
+          "settings": {
+            "clients": [
+              {
+                "id": "7c9d9419-c080-43cd-95ac-59ecaf6f7353",
+                "level": 0,
+                "email": "mh@gmail.com"
+              }
+            ],
+            "decryption": "none"
+          },
+          "streamSettings": {
+            "network": "ws",
+            "security": "tls",
+            "tlsSettings": {
+                "certificates": [
+                    {
+                        "certificateFile": "/etc/nginx/fullchain.cer", // Replace with your certificate, absolute path
+                        "keyFile": "/etc/nginx/cerkey.key" // Replace it with your private key, absolute path
+                    }
+                ]
+            },
+            "wsSettings": {
+              "acceptProxyProtocol": true,
+              "path": "/websocket"
+            }
+          }
+        },
+        {
+            "port": 2235, //trojan+tcp listening process
+            "listen": "127.0.0.1",
+            "protocol": "trojan",
+            "settings": {
+              "clients": [
+                {
+                  "email":"general@trojan-tcp",
+                  "password": "yourpass",
+                  "level": 0
+                }
+              ],
+              "fallbacks": [
+                {
+                  // if it was not a valid trojan reuqest, for example the trojan password was wrong, pass it to the NGINX HTTP2 cleartext UDS
+                  "dest": "8001",
+                  "xver": 2 //Enable PROXY protocol sending, and send the real source IP and port to Nginx. 1 or 2 indicates the PROXY protocol version. Consistent with the above, configuration 2 is recommended.
+                }
+              ]
+            },
+            "streamSettings": {
+              "network": "tcp",
+              "security": "none",
+              "sockopt": {
+                "acceptProxyProtocol": true
+              }
+            },
+            "sniffing": {
+              "enabled": true,
+              "destOverride": [
+                "http",
+                "tls"
+              ]
+            },
+            "tag": "trojan"
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "tag": "direct",
+            "settings": {
+              "domainStrategy": "UseIP"
+            }
+
+        },
+        {
+          "protocol": "Blackhole",
+          "tag": "blocked",
+          "settings": {
+            "domainStrategy": "UseIP"
+          }
+        }
+    ],
+    "routing": {
+        "domainStrategy": "IPOnDemand",
+        "rules": [{
+          "type": "field",
+          "domain": [
+            "geoip:geolocation-!cn"
+          ],
+          "network": "tcp",
+          "inboundTag": [
+            "trojan"
+          ],
+          "outboundTag": "direct"
+          // "balancerTag": "balancer"
+        },
+        {
+          "type": "field",
+          "domain": [
+            "geosite:category-ads-all",
+            "geosite:cn"
+          ],
+          "network": "tcp",
+          "inboundTag": [
+            "trojan"
+          ],
+          "outboundTag": "blocked"
+          // "balancerTag": "balancer"
+        }]
+    },
+    "dns": {
+      "hosts": {
+        "bing.com": "204.79.197.200",
+        "dns.google": "8.8.8.8"
+      },
+      "servers": [
+        {
+          "address": "https://dns.google/dns-query",
+          "domains": [
+            "domain:bing.com",
+            "domain:geosite:geolocation-!cn"
+          ],
+          "exceptIPs": [
+            "geoip:cn"
+          ]
+        },
+        {
+          "address": "114.114.114.114",
+          "domains": [
+            "domain:geosite:cn"
+          ]
+        },
+        "8.8.8.8",
+        "8.8.4.4",
+        "localhost"
+      ]
+    }
+}
