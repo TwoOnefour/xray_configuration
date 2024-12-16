@@ -213,8 +213,8 @@ cat << EOF > config.json
                 "security": "reality",
                 "realitySettings": {
                     "show": false, // 若为 true，输出调试信息
-                    "dest": "81", // 目标网站最低标准：国外网站，支持 TLSv1.3、X25519 与 H2，域名非跳转用（主域名可能被用于跳转到 www）
-                    "xver": 2,
+                    "dest": "www.copymanga.tv:443", // 目标网站最低标准：国外网站，支持 TLSv1.3、X25519 与 H2，域名非跳转用（主域名可能被用于跳转到 www）
+                    "xver": 0,
                     "serverNames": [ // 客户端可用的 serverName 列表，暂不支持 * 通配符
                         "www.copymanga.tv" // Chrome - 输入 "dest" 的网址 - F12 - 安全 - F5 - 主要来源（安全），填 证书 SAN 的值
                     ],
