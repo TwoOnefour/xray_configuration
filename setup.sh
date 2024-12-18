@@ -64,31 +64,10 @@ if [ $os_version -eq 0 ]
 then
     if [ ! -e /usr/bin/unzip ] || [ ! -e /etc/nginx ] || [ ! -e /etc/firewalld ]
     then
-        sed -e 's|^mirrorlist=|#mirrorlist=|g' \
-         -e 's|^#baseurl=http://mirror.centos.org/centos|baseurl=http://mirrors.tuna.tsinghua.edu.cn/centos|g' \
-         -i.bak \
-         /etc/yum.repos.d/CentOS-*.repo
         (yum update && yum upgrade -y )>> /dev/null 2>&1
         (yum install unzip wget nginx firewalld curl systemd -y) >> /dev/null 2>&1
     fi
 else
-    if [ $os_version -eq 1 ]
-    then
-        if [ ! -e /usr/bin/unzip ] || [ ! -e /etc/nginx ] || [ ! -e /etc/firewalld ]
-        then
-            mv /etc/apt/sources.list /etc/apt/sources.list.bak \
-            && echo -e 'deb http://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm main contrib non-free non-free-firmware\n
-deb http://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm-updates main contrib non-free non-free-firmware\n
-deb http://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm-backports main contrib non-free non-free-firmware\n
-deb http://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware' > /etc/apt/sources.list
-        fi
-    else
-        mv /etc/apt/sources.list /etc/apt/sources.list.bak \
-        && echo -e 'deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy main restricted universe multiverse\n
-deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-updates main restricted universe multiverse\n
-deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-backports main restricted universe multiverse\n
-deb http://security.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse' > /etc/apt/sources.list
-    fi
     (apt-get update && apt-get upgrade -y) >> /dev/null 2>&1
     (apt-get -f install unzip wget nginx firewalld curl systemd -y) >> /dev/null 2>&1
 fi
@@ -323,7 +302,7 @@ EOF
 echo "重启nginx"
 systemctl restart nginx >> /dev/null 2>&1
 systemctl enable nginx >> /dev/null 2>&1
-echo "xtls-vless-vision-reality-nginx配置完成"
+echo "xtls-vless-vision-reality配置完成"
 echo '默认配置订阅连接：'
 echo "vless://${uuid}@${ip}:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.copymanga.tv&fp=safari&pbk=${public_key}&sid=${sid}&type=tcp&headerType=none#server"
 echo "建议配置证书使用自己的证书方案，本方案是偷别人证书的方案，不是很推荐，但也能用"
