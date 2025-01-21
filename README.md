@@ -9,7 +9,7 @@
 
 在443端口有两个协议同时监听(tcp和udp)
 
-# 一键部署xray服务器
+# 一键部署xray服务器(reality)
 ## 使用
 >bash <(curl -Ls https://bucket-cf.voidval.com/proxy/setup.sh)
 ## 卸载
