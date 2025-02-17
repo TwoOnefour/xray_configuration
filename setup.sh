@@ -59,19 +59,19 @@ then
     exit 0
 fi
 
-echo '自动安装必要环境, 并更换国内源(若不需要国内源请在修改后自行把.bak文件还原'
+echo '自动安装必要环境'
 if [ $os_version -eq 0 ]
 then
-    if [ ! -e /usr/bin/unzip ] || [ ! -e /etc/nginx ] || [ ! -e /etc/firewalld ]
+    if [ ! -e /usr/bin/unzip ]
     then
-        (yum update && yum upgrade -y )>> /dev/null 2>&1
-        (yum install unzip wget nginx firewalld curl systemd -y) >> /dev/null 2>&1
+        (yum update)>> /dev/null 2>&1
+        (yum install unzip wget curl -y) >> /dev/null 2>&1
     fi
 else
-    (apt-get update && apt-get upgrade -y) >> /dev/null 2>&1
-    (apt-get -f install unzip wget nginx firewalld curl systemd -y) >> /dev/null 2>&1
+    (apt-get update) >> /dev/null 2>&1
+    (apt-get -f install unzip wget curl -y) >> /dev/null 2>&1
 fi
-echo "已安装必要包"
+echo "已安装必要包unzip wget curl"
 
 mkdir /etc/xray >> /dev/null 2>&1
 cd /etc/xray
@@ -135,8 +135,6 @@ echo '开始部署xray'
 
 mkdir /usr/local/etc/xray >> /dev/null 2>&1
 
-
-
 /usr/bin/ln -f /etc/xray/xray /usr/local/bin/xray
 
 /usr/bin/ln -f /etc/xray/xray.service /usr/lib/systemd/system/xray.service
@@ -153,16 +151,9 @@ chmod a+x /usr/local/bin/geoip.dat
 
 systemctl daemon-reload
 
+echo '默认config.json位于/usr/local/etc/xray下，若需要修改配置，请自行修改后重启xray'
 
-systemctl start firewalld
-systemctl enable firewalld
-echo '开启防火墙443端口'
-firewall-cmd --add-port=443/tcp --permanent >> /dev/null 2>&1
-firewall-cmd --reload >> /dev/null 2>&1
-
-echo '默认config.json位于/usr/local/etc/xray下，请自行修改后重启xray'
-
-ip=$(curl -Ls http://4.ipw.cn)
+ip=$(curl -4 -Ls http://ip.sb)
 
 uuid=$(xray uuid)
 keys=$(xray x25519)
@@ -173,15 +164,35 @@ sid=$(openssl rand -hex 8)
 echo "生成config.json文件"
 cat << EOF > config.json
 {
+    "log": {
+        "loglevel": "debug"
+    },
     "inbounds": [
         {
-            "listen": "0.0.0.0",
+            "tag": "dokodemo-in",
             "port": 443,
+            "protocol": "dokodemo-door",
+            "settings": {
+                "address": "127.0.0.1",
+                "port": 4431,
+                "network": "tcp"
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                    "tls"
+                ],
+                "routeOnly": true
+            }
+        },
+        {
+            "listen": "127.0.0.1",
+            "port": 4431,
             "protocol": "vless",
             "settings": {
                 "clients": [
                     {
-                        "id": "$uuid", // 执行 xray uuid 生成，或 1-30 字节的字符串
+                        "id": "${uuid}",
                         "flow": "xtls-rprx-vision"
                     }
                 ],
@@ -191,15 +202,13 @@ cat << EOF > config.json
                 "network": "tcp",
                 "security": "reality",
                 "realitySettings": {
-                    "show": false, // 若为 true，输出调试信息
-                    "dest": "www.copymanga.tv:443", // 目标网站最低标准：国外网站，支持 TLSv1.3、X25519 与 H2，域名非跳转用（主域名可能被用于跳转到 www）
-                    "xver": 0,
-                    "serverNames": [ // 客户端可用的 serverName 列表，暂不支持 * 通配符
-                        "www.copymanga.tv" // Chrome - 输入 "dest" 的网址 - F12 - 安全 - F5 - 主要来源（安全），填 证书 SAN 的值
+                    "dest": "www.copymanga.tv:443",
+                    "serverNames": [
+                        "www.copymanga.tv"
                     ],
-                    "privateKey": "$private_key", // 执行 xray x25519 生成，填 "Private key" 的值
-                    "shortIds": [ // 客户端可用的 shortId 列表，可用于区分不同的客户端
-                        "$sid" // 0 到 f，长度为 2 的倍数，长度上限为 16，可留空，或执行 openssl rand -hex 8 生成
+                    "privateKey": "${private_key}",
+                    "shortIds": [
+                        "${sid}"
                     ]
                 }
             },
@@ -209,102 +218,47 @@ cat << EOF > config.json
                     "http",
                     "tls",
                     "quic"
-                ]
+                ],
+                "routeOnly": true
             }
         }
     ],
-      "outbounds": [
+    "outbounds": [
         {
             "protocol": "freedom",
             "tag": "direct"
         },
         {
-            "protocol": "freedom",
-            "tag": "blocked"
+            "protocol": "blackhole",
+            "tag": "block"
         }
-      ],
-      "routing": {
-          "domainStrategy": "AsIs",
-          "rules": [
-          {
-              "type": "field",
-              "domain": [
-                "geosite:category-ads-all"
-              ],
-              "outboundTag": "blocked"
-          }]
-      },
-      "dns": {
-          "hosts": {
-            "bing.com": "204.79.197.200",
-            "dns.google": "8.8.8.8"
-          },
-          "servers": [
-          {
-              "address": "https://dns.google/dns-query",
-              "domains": [
-              "domain:bing.com",
-              "geosite:geolocation-!cn"
-              ],
-              "exceptIPs": [
-              "geoip:cn"
-              ]
-          },
-          {
-              "address": "114.114.114.114",
-              "domains": [
-              "domain:geosite:cn" 
-              ]
-          },
-          "8.8.8.8",
-          "8.8.4.4",
-          "localhost"
-          ]
+    ],
+    "routing": {
+        "rules": [
+            {
+                "inboundTag": [
+                    "dokodemo-in"
+                ],
+                "domain": [
+                    "www.copymanga.tv"
+                ],
+                "outboundTag": "direct"
+            },
+            {
+                "inboundTag": [
+                    "dokodemo-in"
+                ],
+                "outboundTag": "block"
+            }
+        ]
     }
 }
 EOF
 echo "config.json生成完毕"
-echo "生成nginx文件用于回落"
-cat <<EOF >/etc/nginx/conf.d/fallback.conf
-server{
-    listen 81 http2 ssl proxy_protocol;
-    listen [::]:81 http2 ssl proxy_protocol;
-    ssl_certificate "/etc/nginx/fullchain.cer";
-    ssl_certificate_key "/etc/nginx/cerkey.key";
-    ssl_prefer_server_ciphers on;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    location / {
-            proxy_pass                         https://www.copymanga.tv;
-            proxy_set_header Host              \$proxy_host;
 
-            proxy_http_version                 1.1;
-            proxy_cache_bypass                 \$http_upgrade;
-
-            proxy_ssl_server_name on;
-
-            proxy_set_header Upgrade           \$http_upgrade;
-            proxy_set_header X-Real-IP         \$proxy_protocol_addr;
-
-            proxy_set_header X-Forwarded-For   \$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto \$scheme;
-            proxy_set_header X-Forwarded-Host  \$host;
-            proxy_set_header X-Forwarded-Port  \$server_port;
-
-            proxy_connect_timeout              60s;
-            proxy_send_timeout                 60s;
-            proxy_read_timeout                 60s;
-
-            resolver 1.1.1.1;
-    }
-}
-EOF
 /usr/bin/ln -f  /etc/xray/config.json /usr/local/etc/xray/config.json
-echo "重启nginx"
-systemctl restart nginx >> /dev/null 2>&1
-systemctl enable nginx >> /dev/null 2>&1
 echo "xtls-vless-vision-reality配置完成"
 echo '默认配置订阅连接：'
-echo "vless://${uuid}@${ip}:443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=www.copymanga.tv&fp=safari&pbk=${public_key}&sid=${sid}&type=tcp&headerType=none#server"
-echo "建议配置证书使用自己的证书方案，本方案是偷别人证书的方案，不是很推荐，但也能用"
+echo "vless://${uuid}@${ip}:443?encryption=none&security=reality&sni=www.copymanga.tv&fp=safari&pbk=${public_key}&sid=${sid}&type=tcp&headerType=none#server"
 systemctl start xray
 systemctl enable xray >> /dev/null 2>&1
