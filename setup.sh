@@ -202,9 +202,9 @@ cat << EOF > config.json
                 "network": "tcp",
                 "security": "reality",
                 "realitySettings": {
-                    "dest": "www.copymanga.tv:443",
+                    "dest": "speed.cloudflare.com:443",
                     "serverNames": [
-                        "www.copymanga.tv"
+                        "speed.cloudflare.com"
                     ],
                     "privateKey": "${private_key}",
                     "shortIds": [
@@ -240,7 +240,7 @@ cat << EOF > config.json
                     "dokodemo-in"
                 ],
                 "domain": [
-                    "www.copymanga.tv"
+                    "speed.cloudflare.com"
                 ],
                 "outboundTag": "direct"
             },
@@ -259,6 +259,6 @@ echo "config.json生成完毕"
 /usr/bin/ln -f  /etc/xray/config.json /usr/local/etc/xray/config.json
 echo "xtls-vless-vision-reality配置完成"
 echo '默认配置订阅连接：'
-echo "vless://${uuid}@${ip}:443?encryption=none&security=reality&sni=www.copymanga.tv&fp=safari&pbk=${public_key}&sid=${sid}&type=tcp&headerType=none#server"
+echo "vless://${uuid}@${ip}:443?encryption=none&security=reality&sni=speed.cloudflare.com&fp=safari&pbk=${public_key}&sid=${sid}&type=tcp&headerType=none#server"
 systemctl start xray
 systemctl enable xray >> /dev/null 2>&1
