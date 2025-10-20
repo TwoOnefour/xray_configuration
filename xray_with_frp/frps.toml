@@ -1,0 +1,9 @@
+bindPort = 20000
+quicBindPort = 20000
+bindAddr = "127.0.0.1" # 本地监听xray转发过来的流量
+#log.level = 'debug'
+transport.tcpMux = false
+transport.maxPoolCount = 10 # 按需调整
+#[ auth ]
+#method = "token"
+#token = "twoonefour_frp_token" # 可以不填，填了对应上即可

@@ -1,0 +1,4 @@
+alist.example.com {
+    # 正常使用frpc反代的端口就行了
+    reverse_proxy 127.0.0.1:5244
+}

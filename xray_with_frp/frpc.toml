@@ -1,0 +1,23 @@
+serverAddr = "127.0.0.1"
+serverPort = 10808  # 本地xray dokodemo-door 端口
+transport.poolCount = 1 # 可按需调整
+transport.protocol = "quic" # 使用quic传输加速
+transport.tcpMux = false # 关闭mux，小分片较多的场景可以开
+transport.heartbeatInterval = 10 # 保活
+loginFailExit = false
+
+# [ auth ]
+# method = "token"
+# token = "your_token" # 可不填，毕竟不会暴露在公网上，和frps服务器对应即可
+
+[[ proxies ]]
+name = "alist-http"
+type = "tcp"
+localIP = "127.0.0.1"
+localPort = 5244 # 直接反代http明文流量，不要反代https多一层加密浪费资源
+remotePort = 5244
+transport.useCompression = true
+transport.useEncryption = false # 不要加密，已经过代理了
+
+[ transport.tls ]
+enable=false  # 默认启用，关闭即可，走了代理就不需要了

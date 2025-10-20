@@ -1,0 +1,106 @@
+{
+        "inbounds": [
+        {
+            "tag": "dokodemo-in",
+            "port": 443,
+            "protocol": "dokodemo-door",
+            "settings": {
+                "address": "127.0.0.1",
+                "port": 4431,
+                "followRedirect": true,
+                "network": "tcp"
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                    "tls"
+                ],
+                "routeOnly": true
+            }
+        },
+        {
+            "listen": "127.0.0.1",
+            "port": 4431,
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "", // 填写你的uuid, 可以使用 `xray uuid` 生成
+                        "flow": "xtls-rprx-vision"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "reality",
+                "realitySettings": {
+                    "target": "www.microsoft.com:443",
+                    "serverNames": [
+                        "www.microsoft.com"
+                    ],
+                    "privateKey": "${private_key}", // 可以使用xray x25519生成，填入privateKey
+                    "mldsa65Seed": "", // 可以使用xray mldsa65生成，填入生成的seed, 可以留空，则服务端不开启mldsa65
+                    "shortIds": [
+                        "" // 可留空，或者填写，可使用`openssl rand -hex 8`生成
+                    ]
+                }
+            },
+            "sniffing": {
+                "enabled": true,
+                "destOverride": [
+                    "http",
+                    "tls",
+                    "quic"
+                ]
+            },
+            "tag": "vless-in"
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "tag": "direct"
+        },
+        {
+            "protocol": "freedom",
+            "settings": {
+                // "proxyProtocol": 2,  // 若需要透传ip，建议使用，并在nginx/caddy开启v2
+                "domainStrategy": "UseIPv4",
+                "redirect": "127.0.0.1:4432" // nginx或者caddy监听的端口，流量路径有两条，这里写的是用户访问看到的流量，走nginx直接就能看到反代服务
+            },
+            "tag": "to-alist"
+        }
+    ],
+    "routing": {
+        "rules": [
+            {
+                "inboundTag": [
+                    "dokodemo-in"
+                ],
+                "domain": [
+                    "alist.example.com" // 保证访问的用户流量能直接到反代服务
+                ],
+                "outboundTag": "to-alist"
+            },
+            {
+                "inboundTag": [
+                    "vless-in" // 保证frpc流量能直接到frps
+                ],
+                "ip": [
+                    "127.0.0.1"
+                ],
+                "outboundTag": "direct"
+            },
+            {
+                "inboundTag": [
+                    "dokodemo-in"
+                ],
+                "domain": [
+                    "www.microsoft.com"
+                ],
+                "outboundTag": "direct"
+            }
+        ]
+    }
+}

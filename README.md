@@ -9,8 +9,16 @@
 
 # 一键部署xray服务器(reality)
 ## 使用
-> bash <(curl -Ls https://bucket.voidval.com/proxy/setup.sh)
+> bash <(curl -Ls https://raw.githubusercontent.com/TwoOnefour/xray_configuration/refs/heads/main/setup.sh)
 ## 卸载
-> bash <(curl -Ls https://bucket.voidval.com/proxy/setup.sh) uninstall
+> bash <(curl -Ls https://raw.githubusercontent.com/TwoOnefour/xray_configuration/refs/heads/main/setup.sh) uninstall
 
 此脚本会生成订阅配置，源代码可以访问这个url看或者直接看仓库内的setup.sh
+
+## 内容
+### vless-vision-reality
+我目前正在稳定使用的代理配置
+
+### xray_with_frp
+我的frp通过路径，配合xray可以实现加密frp反代流量
+
