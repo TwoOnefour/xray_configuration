@@ -1,16 +1,16 @@
 # Description
 分享一些我稳定用的xray配置
 
-里面有使用说明
+配置内有我的注解，可以跟着填写
 
-[关于cdn解析的问题和bing重定向的问题](https://github.com/TwoOnefour/xray_configuration/blob/main/vmess_ws_tls_cdn_nginx/bing_problem.md)
+目前我在使用的协议为[vless-vision-reality](https://github.com/TwoOnefour/xray_configuration/tree/main/vless-vision-reality)
 
-目前我在使用的协议为[xhttp_with_reality](https://github.com/TwoOnefour/xray_configuration/tree/main/xhttp_with_reality)
-
-在443端口有两个协议同时监听(tcp和udp)
+不推荐使用xhttp，若喜欢玩cdn，可以自行研究
 
 # 一键部署xray服务器(reality)
 ## 使用
->bash <(curl -Ls https://bucket.voidval.com/proxy/setup.sh)
+> bash <(curl -Ls https://bucket.voidval.com/proxy/setup.sh)
 ## 卸载
 > bash <(curl -Ls https://bucket.voidval.com/proxy/setup.sh) uninstall
+
+此脚本会生成订阅配置，源代码可以访问这个url看或者直接看仓库内的setup.sh

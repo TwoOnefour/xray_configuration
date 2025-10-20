@@ -1,0 +1,42 @@
+{
+  "inbounds": [
+    {
+      "tag": "socks",
+      "port": 10808,
+      "listen": "127.0.0.1",
+      "protocol": "mixed"
+    }
+  ],
+  "outbounds": [
+    {
+      "tag": "proxy",
+      "protocol": "vless",
+      "settings": {
+        "vnext": [
+          {
+            "address": "example.com", // 填写你的服务器地址
+            "port": 443,
+            "users": [
+              {
+                "id": "", // 填写你的uuid, 可以使用xray uuid生成
+                "encryption": "none",
+                "flow": "xtls-rprx-vision"
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "serverName": "www.microsoft.com", // 替换为服务器配置的servername
+          "fingerprint": "firefox",
+          "publicKey": "", // 替换为xray uuid生成的 `Password`
+          "shortId": "", // 替换为服务器配置的shortId, 若服务器配置为"", 可以留空
+          "mldsa65Verify": "" // 若使用mldsa65, 用xray mldsa65生成的verify填入这里，若服务器填写，客户端可以不填也能通
+        }
+      }
+    }
+  ]
+}

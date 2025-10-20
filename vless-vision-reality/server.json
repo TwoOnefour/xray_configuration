@@ -1,0 +1,38 @@
+{
+    "inbounds": [
+        {
+            "port": 443,
+            "protocol": "vless",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "", // 填写你的uuid, 可以使用 `xray uuid` 生成
+                        "flow": "xtls-rprx-vision"
+                    }
+                ],
+                "decryption": "none"
+            },
+            "streamSettings": {
+                "network": "tcp",
+                "security": "reality",
+                "realitySettings": {
+                    "target": "www.microsoft.com:443",
+                    "serverNames": [
+                        "www.microsoft.com"
+                    ],
+                    "privateKey": "${private_key}", // 可以使用xray x25519生成，填入privateKey
+                    "mldsa65Seed": "", // 可以使用xray mldsa65生成，填入生成的seed, 可以留空，则服务端不开启mldsa65
+                    "shortIds": [
+                        "" // 可留空，或者填写，可使用`openssl rand -hex 8`生成
+                    ]
+                }
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "tag": "direct"
+        }
+    ]
+}
