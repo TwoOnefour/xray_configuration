@@ -1,5 +1,5 @@
 #!/bin/bash
-# 此脚本使用xtls-vision-reality-fallback-nginx的方案，无需证书
+# 此脚本使用xtls-vision-reality的方案，无需证书
 # 可使用 bash setup.sh uninstall 卸载此脚本xray
 case $1 in
     install)
@@ -55,7 +55,7 @@ esac
 
 if [ -e /etc/xray ]
 then
-    echo 脚本不是第一次运行，请运行 ./setup.sh uninstall或bash <(curl -Ls https://bucket-cf.voidval.com/proxy/setup.sh) uninstall清理文件
+    echo 脚本不是第一次运行，请运行 ./setup.sh uninstall或bash <(curl -Ls https://bucket.voidval.com/proxy/setup.sh) uninstall清理文件
     exit 0
 fi
 
@@ -90,7 +90,6 @@ Documentation=https://github.com/xtls
 After=network.target nss-lookup.target
 
 [Service]
-User=nobody
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
@@ -157,37 +156,18 @@ ip=$(curl -4 -Ls http://ip.sb)
 
 uuid=$(xray uuid)
 keys=$(xray x25519)
-
-private_key=$(echo "$keys" | sed -n 's/Private key: \([^\\]*\).*/\1/p')
-public_key=$(echo "$keys" | sed -n 's/Public key: \([^\\]*\).*/\1/p')
+mldsa=$(xray mldsa65)
+private_key=$(echo "$keys" | sed -n 's/PrivateKey: \([^\\]*\).*/\1/p')
+public_key=$(echo "$keys" | sed -n 's/Password: \([^\\]*\).*/\1/p')
+mldsa_seed=$(echo "$mldsa" | sed -n 's/Seed: \([^\\]*\).*/\1/p')
+mldsa_verify=$(echo "$mldsa" | sed -n 's/Verify: \([^\\]*\).*/\1/p')
 sid=$(openssl rand -hex 8)
 echo "生成config.json文件"
 cat << EOF > config.json
 {
-    "log": {
-        "loglevel": "debug"
-    },
     "inbounds": [
         {
-            "tag": "dokodemo-in",
             "port": 443,
-            "protocol": "dokodemo-door",
-            "settings": {
-                "address": "127.0.0.1",
-                "port": 4431,
-                "network": "tcp"
-            },
-            "sniffing": {
-                "enabled": true,
-                "destOverride": [
-                    "tls"
-                ],
-                "routeOnly": true
-            }
-        },
-        {
-            "listen": "127.0.0.1",
-            "port": 4431,
             "protocol": "vless",
             "settings": {
                 "clients": [
@@ -202,24 +182,16 @@ cat << EOF > config.json
                 "network": "tcp",
                 "security": "reality",
                 "realitySettings": {
-                    "dest": "speed.cloudflare.com:443",
+                    "target": "www.microsoft.com:443",
                     "serverNames": [
-                        "speed.cloudflare.com"
+                        "www.microsoft.com"
                     ],
                     "privateKey": "${private_key}",
+                    "mldsa65Seed": "${mldsa_seed}",
                     "shortIds": [
                         "${sid}"
                     ]
                 }
-            },
-            "sniffing": {
-                "enabled": true,
-                "destOverride": [
-                    "http",
-                    "tls",
-                    "quic"
-                ],
-                "routeOnly": true
             }
         }
     ],
@@ -227,31 +199,8 @@ cat << EOF > config.json
         {
             "protocol": "freedom",
             "tag": "direct"
-        },
-        {
-            "protocol": "blackhole",
-            "tag": "block"
         }
-    ],
-    "routing": {
-        "rules": [
-            {
-                "inboundTag": [
-                    "dokodemo-in"
-                ],
-                "domain": [
-                    "speed.cloudflare.com"
-                ],
-                "outboundTag": "direct"
-            },
-            {
-                "inboundTag": [
-                    "dokodemo-in"
-                ],
-                "outboundTag": "block"
-            }
-        ]
-    }
+    ]
 }
 EOF
 echo "config.json生成完毕"
@@ -259,6 +208,8 @@ echo "config.json生成完毕"
 /usr/bin/ln -f  /etc/xray/config.json /usr/local/etc/xray/config.json
 echo "xtls-vless-vision-reality配置完成"
 echo '默认配置订阅连接：'
-echo "vless://${uuid}@${ip}:443?encryption=none&security=reality&sni=speed.cloudflare.com&fp=safari&pbk=${public_key}&sid=${sid}&type=tcp&headerType=none#server"
+echo "vless://${uuid}@${ip}:443?encryption=none&security=reality&sni=www.microsoft.com&fp=safari&flow=xtls-rprx-vision&pbk=${public_key}&sid=${sid}&type=tcp&headerType=none#server"
+echo "若你希望使用mldsa65, 请使用以下订阅链接："
+echo "vless://${uuid}@${ip}:443?encryption=none&security=reality&sni=www.microsoft.com&fp=safari&flow=xtls-rprx-vision&pbk=${public_key}&sid=${sid}&type=tcp&headerType=none&pqv=${mldsa_verify}#server"
 systemctl start xray
 systemctl enable xray >> /dev/null 2>&1
