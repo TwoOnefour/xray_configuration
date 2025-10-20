@@ -1,0 +1,53 @@
+name: Sync setup.sh
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '13 */6 * * *'  # UTC，每6小时运行一次
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-setup-sh
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate secret
+        run: |
+          if [ -z "${{ secrets.SETUP_URL }}" ]; then
+            echo "SETUP_URL is empty or not configured."; exit 1
+          fi
+
+      - name: Download latest setup.sh (from secret URL)
+        env:
+          SETUP_URL: ${{ secrets.SETUP_URL }}
+        run: |
+          set -euo pipefail
+          tmp="setup.sh.tmp"
+
+          curl -fsSL --retry 3 --max-time 120 "$SETUP_URL" -o "$tmp"
+
+          if [ ! -s "$tmp" ]; then
+            echo "Downloaded file is empty"; exit 1
+          fi
+
+          if [ -f setup.sh ] && cmp -s "$tmp" setup.sh; then
+            echo "No changes detected."; exit 0
+          fi
+
+          mv "$tmp" setup.sh
+          chmod +x setup.sh
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add setup.sh
+          git commit -m "chore: sync setup.sh from bucket [skip ci]"
+          git push
