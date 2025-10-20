@@ -29,7 +29,7 @@ case $1 in
         ;;
 esac
 
-echo '注意，本脚本只适用于linux-64位安装'
+echo '注意，本脚本只适用于linux-64位安装 '
 
 OS=$(cat /etc/*-release | grep '^ID=')
 
