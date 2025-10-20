@@ -11,6 +11,6 @@
 
 # 一键部署xray服务器(reality)
 ## 使用
->bash <(curl -Ls https://bucket-cf.voidval.com/proxy/setup.sh)
+>bash <(curl -Ls https://bucket.voidval.com/proxy/setup.sh)
 ## 卸载
-> bash <(curl -Ls https://bucket-cf.voidval.com/proxy/setup.sh) uninstall
+> bash <(curl -Ls https://bucket.voidval.com/proxy/setup.sh) uninstall
