@@ -1,0 +1,31 @@
+{
+    "inbounds": [
+        {
+          // 这里是以vless不过墙的前提下的配置，若你过墙，直接换成vless+reality
+          "tag": "vless",
+          "protocol": "vless",
+          "port": 12345,
+          "settings": {
+            "decryption": "xxxx.xxxx.0rtt.xxx", // ./xray vlessenc 生成的decryption
+            "clients": [
+              {"id": "1234"} // xray uuid生成
+            ]
+          } },
+        { "tag": "rdp-1", "protocol": "dokodemo-door", "port": 21000, "settings": { "address": "192.168.50.110", "port": 3389, "network": "tcp,udp" } }, // 匹配内网的端口
+        { "tag": "rdp-2", "protocol": "dokodemo-door", "port": 21001, "settings": { "address": "192.168.50.107", "port": 3389, "network": "tcp,udp" } }
+    ],
+    "outbounds": [
+        { "protocol": "freedom", "tag": "direct" }
+    ],
+    "routing": {
+        "rules": [
+            { "inboundTag": ["vless"], "outboundTag": "portal", "domain": ["reverse-proxy.xray.internal"] },
+            { "inboundTag": ["rdp-1","rdp-2"], "outboundTag": "portal" }
+        ]
+    },
+    "reverse": {
+        "portals": [
+            { "tag": "portal", "domain": "reverse-proxy.xray.internal" } // 必须与客户端一致
+        ]
+    }
+}

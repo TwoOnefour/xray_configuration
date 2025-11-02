@@ -22,3 +22,7 @@
 ### xray_with_frp
 我的frp通过路径，配合xray可以实现加密frp反代流量
 
+### xray_reverse_proxy
+xray的反向代理，和frp一样的功能
+
+

@@ -1,0 +1,29 @@
+{
+  "outbounds": [
+    { "tag": "reverse-out", "protocol": "freedom" },
+    {
+      "tag": "gz",
+      "protocol": "vless",
+      "settings": {
+        "encryption": "",  // ./xray vlessenc 生成的encryption 对应服务端
+        "port": 12345,
+        "address": "xray.com",
+        "id": "1234" // xray uuid生成
+      }
+    }
+  ],
+  "routing": {
+    "rules": [
+      {"inboundTag": "bridge", "outboundTag": "bwg", "domain": ["full:reverse-proxy.xray.internal"]}, // 顺序不能反了, 和服务端一致
+      {"inboundTag": "bridge", "outboundTag": "reverse-out"} // 顺序不能反了
+    ]
+  },
+  "reverse": {
+      "bridges": [
+        {
+          "tag": "bridge",
+          "domain": "reverse-proxy.xray.internal" // 和服务端一致
+        }
+      ]
+  }
+}
