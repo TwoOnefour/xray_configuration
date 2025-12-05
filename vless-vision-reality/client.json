@@ -20,6 +20,8 @@
               {
                 "id": "", // 填写你的uuid, 可以使用xray uuid生成
                 "encryption": "none",
+                "testpre": 5,  // xray 25.12.2 版本, 预链接特性
+                "testseed": [40, 60, 23, 120, 39],  // 同上
                 "flow": "xtls-rprx-vision"
               }
             ]
