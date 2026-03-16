@@ -37,6 +37,9 @@ xray的反向代理，和frp一样的功能
 5. 如果你会的话，你可以在443开一个按sni分流的rule，`tunnel`入栈，回落到其他逻辑比如自己的nginx，作为伪装站
 
 **实例**
+
+`server-config.json`服务端配置
+
 ```server-config.json
 {
     "inbounds": [
@@ -111,6 +114,7 @@ xray的反向代理，和frp一样的功能
 }
 ```
 
+**nginx配置示例**
 ```/etc/nginx/conf.d/alist.conf
 server {
     listen 127.0.0.1:4432 ssl;
