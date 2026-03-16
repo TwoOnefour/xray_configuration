@@ -103,7 +103,7 @@ xray的反向代理，和frp一样的功能
     ],
     "routing": {
         "rules": [
-            { "inboundTag": ["dokodemo-in"], "domain": ["speed.cloudflare.com"], "outboundTag": "direct" },
+            { "inboundTag": ["dokodemo-in"], "domain": ["speed.cloudflare.com"], "outboundTag": "to-vless" },
             { "inboundTag": ["dokodemo-in"], "domain": ["alist.example.com"], "outboundTag": "to-alist" }, 
             { "inboundTag": ["dokodemo-in"], "outboundTag": "block" }
         ]
