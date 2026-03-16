@@ -1,0 +1,113 @@
+{
+  "inbounds": [
+    {
+      "tag": "dokodemo-in",
+      "port": 443,
+      "protocol": "dokodemo-door",
+      "settings": {
+        "followRedirect": false,
+        "network": "tcp"
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "tls"
+        ],
+        "routeOnly": true
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 4433,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "xxxxx",
+            "flow": "xtls-rprx-vision"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "dest": "speedtest.net:443",
+          "serverNames": [
+            "speedtest.net"
+          ],
+          "privateKey": "xxxx",
+          "shortIds": [
+            "xxx"
+          ]
+        }
+      },
+      "sniffing": {
+        "routeOnly": true,
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls",
+          "quic"
+        ]
+      },
+      "tag": "vless-in-2"
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 4431,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "xxxxx",
+            "flow": "xtls-rprx-vision"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "dest": "speed.cloudflare.com:443",
+          "serverNames": [
+            "speed.cloudflare.com"
+          ],
+          "privateKey": "xxxx",
+          "shortIds": [
+            "xxx"
+          ]
+        }
+      },
+      "sniffing": {
+        "routeOnly": true,
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls",
+          "quic"
+        ]
+      },
+      "tag": "vless-in"
+    }
+  ],
+  "outbounds": [
+    { "protocol": "freedom", "settings": { "domainStrategy": "UseIPv4v6" }, "tag": "direct" },
+    { "protocol": "freedom", "settings": { "domainStrategy": "UseIPv4", "redirect": "127.0.0.1:4431" }, "tag": "to-vless" }, // 根据sni分流的第一个入口
+    { "protocol": "freedom", "settings": { "domainStrategy": "UseIPv4", "redirect": "127.0.0.1:4433" }, "tag": "to-vless-2" }, // 根据sni分流的第二个入口
+    { "protocol": "freedom", "settings": { "domainStrategy": "UseIPv6" }, "tag": "to-homeboardbone" }, // 根据sni分流的第二个出口，简化了出站逻辑为使用ipv6，你可以换成你想要的协议出栈
+    { "protocol": "freedom", "settings": { "domainStrategy": "UseIPv4", "redirect": "127.0.0.1:4432" }, "tag": "to-nginx" }, // nginx反代
+    { "protocol": "blackhole", "tag": "block" }
+  ],
+  "routing": {
+    "rules": [
+      { "inboundTag": ["dokodemo-in"], "domain": ["speed.cloudflare.com"], "outboundTag": "to-vless" }, // 根据sni分流的第一个入口
+      { "inboundTag": ["dokodemo-in"], "domain": ["speedtest.net"], "outboundTag": "to-vless-2" }, // 根据sni分流的第二个入口
+      { "inboundTag": ["vless-in-2"], "outboundTag": "to-homeboardbone" }, // 你可以写根据sni分流的第二个出口，比如分流到家宽，直接切换sni到上面对应的域名即可
+      { "inboundTag": ["dokodemo-in"], "domain": ["alist.example.com", "emby.example.com"], "outboundTag": "to-alist" }, // nginx反代
+      { "inboundTag": ["dokodemo-in"], "outboundTag": "block" }
+    ]
+  }
+}
