@@ -16,9 +16,9 @@
                 "network": "tcp",
                 "security": "reality",
                 "realitySettings": {
-                    "target": "www.microsoft.com:443",
+                    "target": "www.microsoft.com:443", // 默认，不想过度配置则保持默认，不建议使用，若你想修改，建议使用邻居的
                     "serverNames": [
-                        "www.microsoft.com"
+                        "www.microsoft.com" // 默认，不想过度配置则保持默认，不建议使用，若你想修改，建议使用邻居的
                     ],
                     "privateKey": "${private_key}", // 可以使用xray x25519生成，填入privateKey
                     "mldsa65Seed": "", // 可以使用xray mldsa65生成，填入生成的seed, 可以留空，则服务端不开启mldsa65
