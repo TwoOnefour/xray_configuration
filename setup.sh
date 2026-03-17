@@ -55,7 +55,7 @@ esac
 
 if [ -e /etc/xray ]
 then
-    echo 脚本不是第一次运行，请运行 ./setup.sh uninstall或bash <(curl -Ls https://bucket.voidval.com/proxy/setup.sh) uninstall清理文件
+    echo 脚本不是第一次运行，请运行 ./setup.sh uninstall或bash '<(curl -Ls https://bucket.voidval.com/proxy/setup.sh)' uninstall清理文件
     exit 0
 fi
 
@@ -76,7 +76,7 @@ echo "已安装必要包unzip wget curl"
 mkdir /etc/xray >> /dev/null 2>&1
 cd /etc/xray
 echo "下载xray文件"
-wget https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip >> /dev/null 2>&1
+wget --progress=bar:force -O Xray-linux-64.zip https://github.com/XTLS/Xray-core/releases/latest/download/Xray-linux-64.zip 2>&1
 unzip -qq -o Xray-linux-64.zip
 rm -rf Xray-linux-64.zip
 echo "xray下载完成"
@@ -207,9 +207,17 @@ echo "config.json生成完毕"
 
 /usr/bin/ln -f  /etc/xray/config.json /usr/local/etc/xray/config.json
 echo "xtls-vless-vision-reality配置完成"
-echo '默认配置订阅连接：'
-echo "vless://${uuid}@${ip}:443?encryption=none&security=reality&sni=www.microsoft.com&fp=safari&flow=xtls-rprx-vision&pbk=${public_key}&sid=${sid}&type=tcp&headerType=none#server"
-echo "若你希望使用mldsa65, 请使用以下订阅链接："
-echo "vless://${uuid}@${ip}:443?encryption=none&security=reality&sni=www.microsoft.com&fp=safari&flow=xtls-rprx-vision&pbk=${public_key}&sid=${sid}&type=tcp&headerType=none&pqv=${mldsa_verify}#server"
+
+# 将订阅链接写入文件
+cat << EOF > /etc/xray/sub.txt
+默认配置订阅连接：
+vless://${uuid}@${ip}:443?encryption=none&security=reality&sni=www.microsoft.com&fp=safari&flow=xtls-rprx-vision&pbk=${public_key}&sid=${sid}&type=tcp&headerType=none#server
+
+若你希望使用mldsa65, 请使用以下订阅链接：
+vless://${uuid}@${ip}:443?encryption=none&security=reality&sni=www.microsoft.com&fp=safari&flow=xtls-rprx-vision&pbk=${public_key}&sid=${sid}&type=tcp&headerType=none&pqv=${mldsa_verify}#server
+EOF
+chmod 600 /etc/xray/sub.txt
+echo "订阅链接已保存，请查看文件获取：cat /etc/xray/sub.txt"
+
 systemctl start xray
 systemctl enable xray >> /dev/null 2>&1
